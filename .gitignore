@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+AI_Model/SL/
+AI_Model/MP_Data/
+node_modules/
+.env

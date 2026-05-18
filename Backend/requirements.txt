@@ -1,0 +1,8 @@
+flask
+flask-cors
+flask-jwt-extended
+mysql-connector-python
+bcrypt
+numpy
+opencv-python-headless
+tensorflow-cpu
