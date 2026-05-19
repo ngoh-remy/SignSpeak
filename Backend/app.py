@@ -35,7 +35,13 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
 #    In production this should be a long random string stored securely
 #    For development, any string works
 
-CORS(app)
+CORS(app, origins=[
+    "http://localhost:5173",
+    "https://sign-speak-kohl.vercel.app"
+])
+# 💡 We now explicitly allow BOTH:
+#    localhost → for local development
+#    Vercel URL → for production
 # 💡 Allows React (running on port 3000) to make requests to Flask
 #    (running on port 5000). Without this, browsers block cross-origin requests
 #    Think of it as adding our React app to the guest list
