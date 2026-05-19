@@ -5,7 +5,7 @@ import logo from '../assets/signspeaklogo.svg'
 import { Camera, CpuIcon, ClipboardList, Play, Square, Sun, Moon, LogOut, User } from 'lucide-react'
 import translations from '../translations'
 
-const API = 'http://127.0.0.1:5000'
+const API = 'https://motivated-achievement-production-46e4.up.railway.app'
 
 function Dashboard({ theme, toggleTheme, lang, toggleLang }) {
   // 💡 Added lang and toggleLang to props — was missing before!
