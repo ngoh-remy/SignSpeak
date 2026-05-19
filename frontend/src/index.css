@@ -420,3 +420,79 @@ body {
   padding: 1.5rem 0 0.5rem 0;
   gap: 8px;
 }
+/* ── Mobile Responsive Fixes ── */
+@media (max-width: 768px) {
+
+  /* Navbar */
+  .navbar {
+    padding: 0.8rem 1rem;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .navbar-right {
+    gap: 6px;
+  }
+
+  .navbar-welcome {
+    font-size: 0.8rem;
+  }
+
+  .logo-text {
+    font-size: 1.1rem;
+  }
+
+  .theme-toggle,
+  .lang-toggle {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  .btn-logout {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  /* Dashboard */
+  .dashboard {
+    padding: 0 1rem 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Cards */
+  .card {
+    padding: 1.2rem;
+  }
+
+  /* Prediction text */
+  .prediction-gesture {
+    font-size: 2.5rem;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Very small screens ── */
+@media (max-width: 400px) {
+  .navbar-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .navbar-welcome span {
+    display: none;
+    /* 💡 Hide welcome text on very small screens
+           keeps navbar clean on tiny phones */
+  }
+
+  .prediction-gesture {
+    font-size: 2rem;
+  }
+}
