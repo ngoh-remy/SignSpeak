@@ -158,51 +158,49 @@ const speakGesture = (word) => {
     <div className="dashboard">
 
       {/* ── Navbar ── */}
-      <div className="navbar">
-        <div className="logo-wrapper">
-          <div className="logo-circle">
-            <img src={logo} alt="SignSpeak" />
-          </div>
-          <span className="logo-text">{t.appName}</span>
-        </div>
-
-        <div className="navbar-right">
-          <span className="navbar-welcome"  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-  <div style={{
-    width: '32px', height: '32px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: 'white', fontWeight: '700', fontSize: '0.85rem',
-    flexShrink: 0
-  }}>
-    {username.charAt(0).toUpperCase()}
-    {/* 💡 charAt(0) gets first letter, toUpperCase() capitalizes it
-           Just like Google's avatar — shows first letter of name */}
+<div className="navbar">
+  {/* LEFT — Logo only */}
+  <div className="logo-wrapper">
+    <div className="logo-circle">
+      <img src={logo} alt="SignSpeak" />
+    </div>
+    <span className="logo-text">{t.appName}</span>
   </div>
-  {t.welcome},{username.split(' ')[0].substring(0, 10)}
-  {/* 💡 split(' ')[0] → takes only the FIRST word (first name)
-        substring(0, 10) → max 10 characters even for long names
-    e.g. "Ngoh Remy Johnson" → "Ngoh"
-         e.g. "Bartholomew" → "Bartholomew" (exactly 10 chars) */}
-</span>
 
-          <button className="lang-toggle" onClick={toggleLang}>
-            {lang === 'en' ? ' FR' : ' EN'}
-          </button>
+  {/* RIGHT — Everything else */}
+  <div className="navbar-right">
 
-          <button className="theme-toggle" onClick={toggleTheme}>
-            {theme === 'dark'
-              ? <><Sun  size={15}/> {t.light}</>
-              : <><Moon size={15}/> {t.dark}</>}
-          </button>
+    {/* User initial circle */}
+    <div style={{
+      width: '34px', height: '34px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'white', fontWeight: '700', fontSize: '0.9rem',
+      flexShrink: 0, cursor: 'default',
+      title: username
+      // 💡 Shows only the first letter of username
+      //    Clean like Google — no text, just the circle
+    }}>
+      {username.charAt(0).toUpperCase()}
+    </div>
 
-          <button className="btn-logout" onClick={handleLogout}>
-            <LogOut size={15} />
-            {t.logout}
-          </button>
-        </div>
-      </div>
+    <button className="lang-toggle" onClick={toggleLang}>
+      {lang === 'en' ? 'FR' : 'EN'}
+    </button>
+
+    <button className="theme-toggle" onClick={toggleTheme}>
+      {theme === 'dark'
+        ? <><Sun size={15}/> {t.light}</>
+        : <><Moon size={15}/> {t.dark}</>}
+    </button>
+
+    <button className="btn-logout" onClick={handleLogout}>
+      <LogOut size={15}/>
+      {t.logout}
+    </button>
+  </div>
+</div>
 
       {/* ── Main Grid ── */}
       <div className="dashboard-grid">
