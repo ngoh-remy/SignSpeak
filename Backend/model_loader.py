@@ -15,8 +15,9 @@ import os
 # Paths to our saved model files from Phase 3
 import os
 
-MODEL_PATH   = os.environ.get("MODEL_PATH",   "../AI_Model/best_model_v2.keras")
-ENCODER_PATH = os.environ.get("ENCODER_PATH", "../AI_Model/label_encoder.pkl")
+MODEL_PATH   = os.environ.get("MODEL_PATH",   "best_model_v2.keras")
+ENCODER_PATH = os.environ.get("ENCODER_PATH", "label_encoder.pkl")
+# 💡 No more ../ — files are now in the same Backend/ folder!
 
 # Load the trained model
 model = tf.keras.models.load_model(MODEL_PATH)
