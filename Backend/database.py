@@ -10,13 +10,27 @@ import bcrypt
 
 # ── Database Connection Config ────────────────────────────────────────────
 import os
+import urllib.parse
 
-DB_CONFIG = {
-    "host"    : os.environ.get("DB_HOST",     "localhost"),
-    "user"    : os.environ.get("DB_USER",     "root"),
-    "password": os.environ.get("DB_PASSWORD", "yourpassword"),
-    "database": os.environ.get("DB_NAME",     "signspeakdb")
-}
+public_url = os.environ.get("MYSQL_PUBLIC_URL", "")
+
+if public_url:
+    parsed     = urllib.parse.urlparse(public_url)
+    DB_CONFIG  = {
+        "host"    : parsed.hostname,
+        "port"    : parsed.port or 3306,
+        "user"    : parsed.username,
+        "password": parsed.password,
+        "database": parsed.path.lstrip('/'),
+    }
+else:
+    DB_CONFIG = {
+        "host"    : "turntable.proxy.rlwy.net",
+        "port"    : 18489,
+        "user"    : "root",
+        "password": "bDiPByFwNSQCaEfryHXqnuhzXpsTHVYo",
+        "database": "railway"
+    }
 # 💡 os.environ.get() reads secret values from Railway's environment
 #    instead of hardcoding passwords in our code
 #    The second argument is the fallback for local development
@@ -93,7 +107,7 @@ def get_user_by_id(user_id):
     conn   = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, username, email FROM users WHERE id = %s", 
-                   (user_id,))
+                (user_id,))
     user = cursor.fetchone()
     cursor.close()
     conn.close()
