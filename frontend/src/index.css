@@ -526,10 +526,24 @@ body {
     padding: 0 1rem 1rem;
   }
 
+ /* ── Dashboard Grid ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* 💡 Desktop ALWAYS shows 2 columns side by side
+         Camera left, Detection+History right */
+}
+
+/* Mobile ONLY switches to 1 column */
+@media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    /* 💡 Mobile stacks everything vertically */
   }
+}
 
   /* Cards */
   .card {
