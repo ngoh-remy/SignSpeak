@@ -159,7 +159,7 @@ const speakGesture = (word) => {
 
       {/* ── Navbar ── */}
 <div className="navbar">
-  {/* LEFT — Logo only */}
+  {/* LEFT — Logo */}
   <div className="logo-wrapper">
     <div className="logo-circle">
       <img src={logo} alt="SignSpeak" />
@@ -167,38 +167,33 @@ const speakGesture = (word) => {
     <span className="logo-text">{t.appName}</span>
   </div>
 
-  {/* RIGHT — Everything else */}
+  {/* RIGHT — Icons only on mobile, icons+text on desktop */}
   <div className="navbar-right">
 
-    {/* User initial circle */}
-    <div style={{
-      width: '34px', height: '34px',
-      borderRadius: '50%',
-      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'white', fontWeight: '700', fontSize: '0.9rem',
-      flexShrink: 0, cursor: 'default',
-      title: username
-      // 💡 Shows only the first letter of username
-      //    Clean like Google — no text, just the circle
-    }}>
+    {/* User initial */}
+    <div className="user-avatar" title={username}>
       {username.charAt(0).toUpperCase()}
     </div>
 
-    <button className="lang-toggle" onClick={toggleLang}>
+    {/* Language toggle */}
+    <button className="nav-icon-btn" onClick={toggleLang}>
       {lang === 'en' ? 'FR' : 'EN'}
     </button>
 
-    <button className="theme-toggle" onClick={toggleTheme}>
-      {theme === 'dark'
-        ? <><Sun size={15}/> {t.light}</>
-        : <><Moon size={15}/> {t.dark}</>}
+    {/* Theme toggle */}
+    <button className="nav-icon-btn" onClick={toggleTheme}>
+      {theme === 'dark' ? <Sun size={16}/> : <Moon size={16}/>}
+      <span className="nav-btn-text">
+        {theme === 'dark' ? t.light : t.dark}
+      </span>
     </button>
 
-    <button className="btn-logout" onClick={handleLogout}>
-      <LogOut size={15}/>
-      {t.logout}
+    {/* Logout */}
+    <button className="nav-icon-btn" onClick={handleLogout}>
+      <LogOut size={16}/>
+      <span className="nav-btn-text">{t.logout}</span>
     </button>
+
   </div>
 </div>
 
