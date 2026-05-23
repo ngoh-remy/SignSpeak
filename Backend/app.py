@@ -175,69 +175,66 @@ def predict():
 @jwt_required()
 def history():
     user_id = int(get_jwt_identity())
-    conn    = None
-    cursor  = None
     try:
         conn   = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Get all predictions
+        # Get recent predictions
         cursor.execute("""
             SELECT gesture, confidence, created_at 
             FROM predictions 
             WHERE user_id = %s 
-            ORDER BY created_at DESC
-            LIMIT 50
+            ORDER BY created_at DESC LIMIT 50
         """, (user_id,))
         records = cursor.fetchall()
-
-        # Convert datetime to string
         for r in records:
             r['created_at'] = str(r['created_at'])
 
-        # Calculate stats
-        cursor.execute("""
-            SELECT COUNT(*) as total FROM predictions 
-            WHERE user_id = %s
-        """, (user_id,))
+        # Total count
+        cursor.execute("SELECT COUNT(*) as total FROM predictions WHERE user_id = %s", (user_id,))
         total = cursor.fetchone()['total']
 
+        # Most used gesture
         cursor.execute("""
-            SELECT gesture, COUNT(*) as count 
+            SELECT gesture, COUNT(*) as cnt 
             FROM predictions WHERE user_id = %s 
-            GROUP BY gesture ORDER BY count DESC LIMIT 1
+            GROUP BY gesture ORDER BY cnt DESC LIMIT 1
         """, (user_id,))
         most_used_row = cursor.fetchone()
         most_used = most_used_row['gesture'] if most_used_row else 'None'
 
+        # Today count
         cursor.execute("""
             SELECT COUNT(*) as today FROM predictions 
-            WHERE user_id = %s AND DATE(created_at) = CURDATE()
+            WHERE user_id = %s 
+            AND DATE(created_at) = DATE(NOW())
         """, (user_id,))
         today = cursor.fetchone()['today']
 
+        # Average confidence
         cursor.execute("""
             SELECT AVG(confidence) as avg_conf 
             FROM predictions WHERE user_id = %s
         """, (user_id,))
-        avg_conf_row = cursor.fetchone()
-        avg_conf = round(float(avg_conf_row['avg_conf']), 1) if avg_conf_row['avg_conf'] else 0
+        avg_row  = cursor.fetchone()
+        avg_conf = round(float(avg_row['avg_conf']), 1) if avg_row['avg_conf'] else 0
 
-        # Gestures not used recently (suggestions)
+        # Gestures used in last 7 days
         cursor.execute("""
-            SELECT gesture FROM predictions 
+            SELECT DISTINCT gesture FROM predictions 
             WHERE user_id = %s 
             AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-            GROUP BY gesture
         """, (user_id,))
-        recent_gestures = [r['gesture'] for r in cursor.fetchall()]
-        all_gestures    = ['drink', 'go', 'help', 'yes', 'no']
-        not_used        = [g for g in all_gestures if g not in recent_gestures]
-        # 💡 Finds gestures not used in last 7 days → becomes suggestions!
+        recent  = [r['gesture'] for r in cursor.fetchall()]
+        all_g   = ['drink', 'go', 'help', 'yes', 'no']
+        not_used = [g for g in all_g if g not in recent]
+
+        cursor.close()
+        conn.close()
 
         return jsonify({
-            "history" : records,
-            "stats"   : {
+            "history"    : records,
+            "stats"      : {
                 "total"    : total,
                 "most_used": most_used,
                 "today"    : today,
@@ -247,11 +244,13 @@ def history():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if cursor: cursor.close()
-        if conn:   conn.close()
-
+        print(f"History error: {str(e)}")
+        # 💡 Return safe empty response instead of crashing
+        return jsonify({
+            "history"    : [],
+            "stats"      : {"total": 0, "most_used": "None", "today": 0, "avg_conf": 0},
+            "suggestions": []
+        }), 200
 
 # ── PROFILE ROUTE ─────────────────────────────────────────────────────────
 
