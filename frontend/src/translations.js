@@ -36,6 +36,20 @@ const translations = {
     accountCreated: "Account created! Redirecting...",
     registerFailed: "Registration failed",
 
+    // History Panel
+historyPanel:    "History & Insights",
+totalDetections: "Total Detections",
+mostUsed:        "Most Used",
+todayCount:      "Today",
+avgConfidence:   "Avg Confidence",
+recentHistory:   "Recent Detections",
+suggestions:     "Daily Suggestions",
+suggestionText:  "Practice signing",
+noSuggestions:   "Great job! You have used all gestures recently!",
+noHistory:       "No detections yet — start signing!",
+closePanel:      "Close",
+history:         "History",
+
     // ── Dashboard ──
     liveCamera:     "Live Camera Feed",
     cameraPlaceholder: "Camera feed will appear here",
@@ -95,6 +109,20 @@ const translations = {
     loginLink:      "Connexion",
     accountCreated: "Compte créé! Redirection...",
     registerFailed: "Échec de l'inscription",
+
+    // History Panel
+historyPanel:    "Historique & Analyses",
+totalDetections: "Total Détections",
+mostUsed:        "Plus Utilisé",
+todayCount:      "Aujourd'hui",
+avgConfidence:   "Confiance Moy.",
+recentHistory:   "Détections Récentes",
+suggestions:     "Suggestions du Jour",
+suggestionText:  "Pratiquez le signe",
+noSuggestions:   "Bravo! Vous avez utilisé tous les gestes récemment!",
+noHistory:       "Aucune détection — commencez à signer!",
+closePanel:      "Fermer",
+history:         "Historique",
 
     // ── Dashboard ──
     liveCamera:     "Flux Caméra en Direct",

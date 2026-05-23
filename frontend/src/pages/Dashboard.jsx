@@ -4,6 +4,7 @@ import axios from 'axios'
 import logo from '../assets/signspeaklogo.svg'
 import { Camera, CpuIcon, ClipboardList, Play, Square, Sun, Moon, LogOut, User } from 'lucide-react'
 import translations from '../translations'
+import { History, X, TrendingUp, Award, Calendar, Target } from 'lucide-react'
 
 const API = 'https://motivated-achievement-production-46e4.up.railway.app'
 
@@ -16,6 +17,9 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang }) {
   const [history,     setHistory]     = useState([])
   const [status,      setStatus]      = useState('')
   const [username,    setUsername]    = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [stats,       setStats]       = useState(null)
+  const [suggestions, setSuggestions] = useState([])
 
   const videoRef    = useRef(null)
   const streamRef   = useRef(null)
@@ -54,15 +58,17 @@ const speakGesture = (word) => {
   }, [])
 
   const fetchHistory = async () => {
-    try {
-      const response = await axios.get(`${API}/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setHistory(response.data.history)
-    } catch (err) {
-      console.error('Failed to fetch history:', err)
-    }
+  try {
+    const response = await axios.get(`${API}/history`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    setHistory(response.data.history)
+    setStats(response.data.stats)
+    setSuggestions(response.data.suggestions)
+  } catch (err) {
+    console.error('Failed to fetch history:', err)
   }
+}
 
   const startCamera = async () => {
     const unlock = new SpeechSynthesisUtterance('')
@@ -174,6 +180,10 @@ const speakGesture = (word) => {
     <div className="user-avatar" title={username}>
       {username.charAt(0).toUpperCase()}
     </div>
+    <button className="nav-icon-btn" onClick={() => setShowHistory(true)}>
+  <History size={16}/>
+  <span className="nav-btn-text">{t.history}</span>
+</button>
 
     {/* Language toggle */}
     <button className="nav-icon-btn" onClick={toggleLang}>
@@ -289,6 +299,97 @@ const speakGesture = (word) => {
 
         </div>
       </div>
+      {/* ── History Slide-out Panel ── */}
+{showHistory && (
+  <div className="history-overlay" onClick={() => setShowHistory(false)}>
+    {/* 💡 Clicking the dark overlay closes the panel */}
+  </div>
+)}
+
+<div className={`history-panel ${showHistory ? 'open' : ''}`}>
+  {/* Panel Header */}
+  <div className="history-panel-header">
+    <h2 style={{ color: 'var(--accent)', fontSize: '1.2rem' }}>
+      <History size={18} style={{ marginRight: 8, verticalAlign: 'middle' }}/>
+      {t.historyPanel}
+    </h2>
+    <button className="nav-icon-btn" onClick={() => setShowHistory(false)}>
+      <X size={18}/>
+    </button>
+  </div>
+
+  {/* Stats Cards */}
+  {stats && (
+    <div className="stats-grid">
+      <div className="stat-card">
+        <TrendingUp size={20} color="var(--accent)"/>
+        <div className="stat-value">{stats.total}</div>
+        <div className="stat-label">{t.totalDetections}</div>
+      </div>
+      <div className="stat-card">
+        <Award size={20} color="#f59e0b"/>
+        <div className="stat-value" style={{ textTransform: 'capitalize' }}>
+          {t.gestures[stats.most_used?.toLowerCase()] || stats.most_used || '-'}
+        </div>
+        <div className="stat-label">{t.mostUsed}</div>
+      </div>
+      <div className="stat-card">
+        <Calendar size={20} color="#22c55e"/>
+        <div className="stat-value">{stats.today}</div>
+        <div className="stat-label">{t.todayCount}</div>
+      </div>
+      <div className="stat-card">
+        <Target size={20} color="#8b5cf6"/>
+        <div className="stat-value">{stats.avg_conf}%</div>
+        <div className="stat-label">{t.avgConfidence}</div>
+      </div>
+    </div>
+  )}
+
+  {/* Suggestions */}
+  <div className="panel-section">
+    <p className="section-title">💡 {t.suggestions}</p>
+    {suggestions.length > 0 ? (
+      suggestions.map((gesture, i) => (
+        <div className="suggestion-item" key={i}>
+          <span>🤚</span>
+          <span>{t.suggestionText} <strong style={{ color: 'var(--accent)', textTransform: 'capitalize' }}>
+            {t.gestures[gesture] || gesture}
+          </strong> — {lang === 'fr' ? "pas pratiqué récemment!" : "not practiced recently!"}</span>
+        </div>
+      ))
+    ) : (
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        {t.noSuggestions}
+      </p>
+    )}
+  </div>
+
+  {/* History List */}
+  <div className="panel-section">
+    <p className="section-title">📋 {t.recentHistory}</p>
+    {history.length > 0 ? (
+      history.map((item, i) => (
+        <div className="history-item" key={i}>
+          <div>
+            <span className="history-gesture">
+              {t.gestures[item.gesture?.toLowerCase()] || item.gesture}
+            </span>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+              {new Date(item.created_at).toLocaleString()}
+              {/* 💡 toLocaleString() formats date nicely based on user's locale */}
+            </div>
+          </div>
+          <span className="history-confidence">{item.confidence}%</span>
+        </div>
+      ))
+    ) : (
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        {t.noHistory}
+      </p>
+    )}
+  </div>
+</div>
     </div>
   )
 }

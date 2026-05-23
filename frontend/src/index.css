@@ -475,8 +475,111 @@ body {
 }
 
 /* ════════════════════════════════════
-   VERY SMALL — max-width: 400px
+  VERY SMALL — max-width: 400px
    ════════════════════════════════════ */
 @media (max-width: 400px) {
   .prediction-gesture { font-size: 2rem; }
+}
+/* ── History Slide-out Panel ── */
+.history-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+  /* 💡 Dark overlay behind the panel
+         clicking it closes the panel */
+}
+
+.history-panel {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 420px;
+  max-width: 100vw;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  z-index: 300;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  padding: 1.5rem;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+  /* 💡 Starts off-screen at right: -420px
+         slides in when .open class is added */
+}
+
+.history-panel.open {
+  right: 0;
+  /* 💡 Slides panel into view smoothly! */
+}
+
+.history-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Panel Sections */
+.panel-section {
+  margin-bottom: 1.5rem;
+}
+
+/* Suggestions */
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0.75rem;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* Mobile panel full width */
+@media (max-width: 768px) {
+  .history-panel {
+    width: 100vw;
+    right: -100vw;
+  }
 }
