@@ -76,44 +76,56 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   }
 
  const captureAndPredict = async () => {
-    if (!videoRef.current || videoRef.current.readyState < 2) return // Ensure data frame is ready
+    if (!videoRef.current || videoRef.current.readyState < 2) return
     
     try {
       const canvas = document.createElement('canvas')
-      // Use the actual running dimensions of your video stream
+      // Ensure strict dimensions match what your Python/Node backend AI matrix needs
       canvas.width = 64
       canvas.height = 64
       const ctx = canvas.getContext('2d')
       
-      // Draw frame cleanly from your live stream element
+      // Draw frame cleanly from the active webcam track
       ctx.drawImage(videoRef.current, 0, 0, 64, 64)
-      const base64Frame = canvas.toDataURL('image/png').split(',')[1]
+      
+      // Get the image data. We try JPEG first as it's standard for vision models, fallback to PNG
+      const rawDataUrl = canvas.toDataURL('image/jpeg', 0.8) || canvas.toDataURL('image/png')
+      const base64Frame = rawDataUrl.split(',')[1]
       
       if (!base64Frame) return
-      const frames = [base64Frame]
+      
+      // Format payload exactly matching the array expectations of your production backend
+      const payload = { frames: [base64Frame] }
 
       setStatus(t.loading || 'Analyzing matrix...')
       
-      // Fix: Direct explicit fallback to ensure HTTPS domain communication
       const cleanAPI = API.replace('http://', 'https://')
       
       const response = await axios.post(
         `${cleanAPI}/predict`, 
-        { frames }, 
+        payload, 
         token ? { headers: { Authorization: `Bearer ${token}` } } : {}
       )
       
-      const detected = response.data.gesture
+      // Support both variations of backend keys (.gesture or .prediction)
+      const detected = response.data.gesture || response.data.prediction
+      
       if (detected) {
         setPrediction(detected)
-        setConfidence(response.data.confidence)
+        // Fallback accuracy calculation if backend passes raw decimal ratio instead of percentage
+        const confScore = response.data.confidence
+        setConfidence(confScore > 1 ? confScore : (confScore * 100).toFixed(1))
         setSentence(prev => [...prev, detected])
         setStatus(t.detectedGesture || 'Frame read successful')
         if (token) fetchHistory() 
+      } else {
+        setStatus('Processing request...')
       }
     } catch (err) {
-      console.error('API Handshake or Model matching failed:', err)
-      setStatus('Translation payload error')
+      console.error('Handshake error:', err)
+      // Display the exact system code error right on screen to pinpoint the problem instantly
+      const systemErrorMsg = err.response?.data?.message || err.response?.statusText || 'Payload rejected'
+      setStatus(`API Error: ${err.response?.status || ''} (${systemErrorMsg})`)
     }
   }
 
