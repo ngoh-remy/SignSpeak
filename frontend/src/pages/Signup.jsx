@@ -1,108 +1,51 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Sun, Moon, Eye, EyeOff } from 'lucide-react'
-import logo from '../assets/signspeaklogo.svg'
-import translations from '../translations'
-
-const API = 'https://motivated-achievement-production-46e4.up.railway.app'
+import Navbar from './Navbar'
 
 function Signup({ theme, toggleTheme, lang, toggleLang }) {
-  const [showPassword, setShowPassword] = useState(false)
   const [username, setUsername] = useState('')
-  const [email,    setEmail]    = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error,    setError]    = useState('')
-  const [success,  setSuccess]  = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const t = translations[lang]
 
-  const handleSignup = async () => {
-    if (!username || !email || !password) { setError(t.fillAllFields); return }
-    setLoading(true); setError('')
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     try {
-      await axios.post(`${API}/register`, { username, email, password })
-      setSuccess(t.accountCreated)
-      setTimeout(() => navigate('/login'), 1500)
+      await axios.post('https://motivated-achievement-production-46e4.up.railway.app/signup', { username, email, password })
+      navigate('/login')
     } catch (err) {
-      setError(err.response?.data?.error || t.registerFailed)
-    } finally { setLoading(false) }
+      setError('Registration rejected. User might already exist.')
+    }
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-top">
-        <button className="lang-toggle" onClick={toggleLang}>
-          {lang === 'en' ? 'FR' : 'EN'}
-        </button>
-        <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'dark' ? <Sun size={14}/> : <Moon size={14}/>}
-          <span className="nav-btn-text">{theme === 'dark' ? t.light : t.dark}</span>
-        </button>
-      </div>
-
-      <div className="auth-card card">
-        <div className="auth-logo">
-          <div className="logo-wrapper">
-            <div className="logo-circle">
-              <img src={logo} alt="SignSpeak Logo" />
+    <div className="app-container">
+      <Navbar theme={theme} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '6px', textAlign: 'center' }}>Get Started</h2>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '24px', textAlign: 'center' }}>Create an account to unlock history tracking and profile recommendations.</p>
+          
+          {error && <div style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px', textAlign: 'center' }}>{error}</div>}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="dark-input-group">
+              <label>Profile Name</label>
+              <input type="text" className="dark-input" placeholder="John Doe" required value={username} onChange={e => setUsername(e.target.value)} />
             </div>
-            <span className="logo-text">{t.appName}</span>
-          </div>
-        </div>
-
-        <div className="auth-title">{t.createAccount}</div>
-        <div className="auth-subtitle">{t.joinToday}</div>
-
-        {error   && <div className="error-msg">{error}</div>}
-        {success && <div className="success-msg">{success}</div>}
-
-        <input 
-          className="input-field" 
-          type="text"
-          placeholder={t.usernamePlaceholder} 
-          value={username}
-          onChange={e => setUsername(e.target.value)} 
-        />
-
-        <input 
-          className="input-field" 
-          type="email"
-          placeholder={t.emailPlaceholder} 
-          value={email}
-          onChange={e => setEmail(e.target.value)} 
-        />
-
-        {/* Unified structural input alignment container */}
-        <div className="relative w-full" style={{ position: 'relative' }}>
-          <input
-            className="input-field"
-            type={showPassword ? 'text' : 'password'}
-            placeholder={t.passwordPlaceholder}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSignup()} // 💡 Fixed: Changed handleLogin to handleSignup
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(prev => !prev)}
-            style={{
-              position: 'absolute', right: '14px', top: '22px',
-              transform: 'translateY(-50%)', background: 'none',
-              border: 'none', cursor: 'pointer', color: 'var(--text-secondary)'
-            }}
-          >
-            {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
-          </button>
-        </div>
-
-        <button className="btn-primary" onClick={handleSignup} disabled={loading}>
-          {loading ? t.creatingAccount : t.signUpBtn}
-        </button>
-
-        <div className="auth-link">
-          {t.alreadyAccount} <Link to="/login">{t.loginLink}</Link>
+            <div className="dark-input-group">
+              <label>Email Address</label>
+              <input type="email" className="dark-input" placeholder="name@domain.com" required value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <div className="dark-input-group">
+              <label>Secure Password</label>
+              <input type="password" className="dark-input" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
+            </div>
+            <button type="submit" className="btn-base btn-purple" style={{ width: '100%', padding: '12px', marginTop: '8px' }}>Register Profile</button>
+          </form>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '20px', textAlign: 'center' }}>Already configured? <span style={{ color: '#8b5cf6', cursor: 'pointer' }} onClick={() => navigate('/login')}>Sign In</span></p>
         </div>
       </div>
     </div>
