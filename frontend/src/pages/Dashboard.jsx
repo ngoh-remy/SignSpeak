@@ -83,25 +83,28 @@ const captureAndPredict = async () => {
       canvas.width = 64
       canvas.height = 64
       const ctx = canvas.getContext('2d')
-      
-      // Draw the active video frame cleanly
       ctx.drawImage(videoRef.current, 0, 0, 64, 64)
       
-      // Extract clean base64 data URL string
       const dataUrl = canvas.toDataURL('image/png')
       const base64Frame = dataUrl.split(',')[1]
       
       if (!base64Frame) return
 
-      setStatus(t.loading || 'Analyzing matrix...')
+      setStatus(t.loading || 'Analyzing...')
       
       const cleanAPI = API.replace('http://', 'https://')
       
-      // Fix: Send a completely clean POST request without Auth tokens 
-      // in case the ML model server rejects unexpected header payloads
-      const response = await axios.post(`${cleanAPI}/predict`, {
-        frames: [base64Frame]
-      })
+      // RESTORE THE TOKEN: This fixes the 401 Unauthorized error in your console
+      const response = await axios.post(
+        `${cleanAPI}/predict`, 
+        { frames: [base64Frame] },
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
+      )
       
       const detected = response.data.gesture || response.data.prediction
       
@@ -110,15 +113,20 @@ const captureAndPredict = async () => {
         const confScore = response.data.confidence
         setConfidence(confScore > 1 ? confScore : (confScore * 100).toFixed(1))
         setSentence(prev => [...prev, detected])
-        setStatus(t.detectedGesture || 'Frame read successful')
+        setStatus(t.detectedGesture || 'Gesture Translated')
         if (token) fetchHistory() 
-      } else {
-        setStatus('Awaiting gesture pattern...')
       }
     } catch (err) {
       console.error('Handshake error:', err)
-      const systemErrorMsg = err.response?.data?.message || err.response?.statusText || 'Payload rejected'
-      setStatus(`API Error: ${err.response?.status || ''} (${systemErrorMsg})`)
+      // This will now tell you if it's still 401 or something else
+      const statusErr = err.response?.status
+      const msg = err.response?.data?.message || 'Error'
+      setStatus(`System Error: ${statusErr} (${msg})`)
+      
+      // If we get a 401, it means the token expired or is missing
+      if (statusErr === 401) {
+        setStatus("Session Expired - Please Log In Again")
+      }
     }
   }
   return (
