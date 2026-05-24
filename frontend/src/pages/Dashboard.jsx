@@ -10,6 +10,18 @@ import Navbar from './Navbar'
 
 const API = 'https://motivated-achievement-production-46e4.up.railway.app'
 
+// Static dictionary to dynamically map incoming base model prediction keys to French terms
+const gestureTranslations = {
+  'help': 'aide',
+  'go': 'aller',
+  'drink': 'boire',
+  'hello': 'bonjour',
+  'thank you': 'merci',
+  'please': 's\'il vous plaît',
+  'yes': 'oui',
+  'no': 'non'
+}
+
 function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   const [isStreaming, setIsStreaming] = useState(false)
   const [prediction, setPrediction] = useState(null)
@@ -29,18 +41,6 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
   const t = translations[lang] || translations['en']
-
-  // Map incoming gesture strings dynamically to vocalize French terms if lang === 'fr'
-  const gestureTranslations = {
-    'help': 'aide',
-    'go': 'aller',
-    'drink': 'boire',
-    'hello': 'bonjour',
-    'thank you': 'merci',
-    'please': 's\'il vous plaît',
-    'yes': 'oui',
-    'no': 'non'
-  }
 
   useEffect(() => {
     setUsername(localStorage.getItem('username') || 'Guest Explorer')
@@ -86,7 +86,6 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setStatus(t.webcamInactive)
   }
 
-  // FIXED SPEECH OUTPUT: Forces the browser synthesis engine to speak natively in French
   const speak = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel() 
@@ -144,9 +143,9 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
         setPrediction(detected)
         setConfidence(response.data.confidence)
         
-        // Push the French equivalent word onto the visual sentence pills if in French mode
-        const displayWord = lang === 'fr' ? (gestureTranslations[detected.toLowerCase().trim()] || detected) : detected
-        setSentence(prev => [...prev, displayWord])
+        // FIX: Always save the clean English identifier to the array state 
+        // so it can dynamically translate when toggled
+        setSentence(prev => [...prev, detected.toLowerCase().trim()])
         
         speak(detected)
         if (token) fetchHistory()
@@ -175,8 +174,8 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
           <div className="glass-card">
             <h2 style={{ fontSize: '1.25rem', marginBottom: '6px' }}>{t.dashboardTitle}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-  {t.welcomeUser}{username}. {t.translationDesc}
-</p>
+              {t.welcomeUser}{username}. {t.translationDesc}
+            </p>
             
             <div style={{ width: '100%', height: '340px', background: 'var(--bg-darker)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
               {isStreaming ? (
@@ -223,9 +222,13 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
                 </button>
               </div>
             </div>
-            <div className="sentence-box" onClick={() => speak(sentence.join(' '))} style={{ cursor: sentence.length > 0 ? 'pointer' : 'default' }}>
+            <div className="sentence-box" style={{ cursor: sentence.length > 0 ? 'pointer' : 'default' }}>
               {sentence.length > 0 ? (
-                sentence.map((w, i) => <span key={i} className="word-pill">{w}</span>)
+                sentence.map((w, i) => {
+                  // FIX: Translate dynamically on-the-fly depending on selected lang state
+                  const textOutput = lang === 'fr' ? (gestureTranslations[w] || w) : w;
+                  return <span key={i} className="word-pill">{textOutput}</span>
+                })
               ) : (
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.noGestures}</span>
               )}
@@ -290,11 +293,12 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>TOTAL</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{stats.total_signs || history.length}</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{stats.total || history.length}</div>
                   </div>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.confidence.toUpperCase()}</div>
-                    <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#34d399' }}>{stats.average_confidence || '0'}%</div>
+                    {/* FIX: Bound directly to 'stats.avg_conf' matching app.py json return key */}
+                    <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#34d399' }}>{stats.avg_conf || 0}%</div>
                   </div>
                 </div>
               </div>
