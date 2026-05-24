@@ -21,6 +21,8 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   const [stats, setStats] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [sentence, setSentence] = useState([])
+  const [frameBuffer, setFrameBuffer] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -74,11 +76,23 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setIsStreaming(false)
     setStatus(t.webcamInactive || 'Camera Inactive')
   }
-// 1. Add a state to hold the frame buffer at the top of your component
-  const [frameBuffer, setFrameBuffer] = useState([]);
+// const [frameBuffer, setFrameBuffer] = useState([]);
+//   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Helper Function: Triggers native text-to-speech engine instantly
+  const speakWord = (text) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech so words don't pile up
+      window.speechSynthesis.cancel(); 
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0; // Normal human talking speed
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const captureAndPredict = async () => {
-    if (!videoRef.current || videoRef.current.readyState < 2) return;
+    if (!videoRef.current || videoRef.current.readyState < 2 || isAnalyzing) return;
 
     try {
       const canvas = document.createElement('canvas');
@@ -90,54 +104,73 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       const dataUrl = canvas.toDataURL('image/png');
       const base64Frame = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
 
-      // 2. Add the new frame to our collection
+      if (!base64Frame) return;
+
       setFrameBuffer(prev => {
         const newBuffer = [...prev, base64Frame];
         
-        // 3. ONLY send to API when we hit exactly 30 frames as required by app.py
         if (newBuffer.length === 30) {
+          setIsAnalyzing(true); // Lock capturing briefly so sequences don't overlap
           sendToApi(newBuffer);
-          return []; // Clear buffer for the next gesture
+          return []; 
         }
         
-        setStatus(`Capturing: ${newBuffer.length}/30 frames...`);
+        setStatus(`Recording sign language sequence...`);
         return newBuffer;
       });
 
     } catch (err) {
-      console.error('Capture error:', err);
+      console.error('Frame buffer loop error:', err);
     }
   };
 
-  // 4. Create the actual API call function
   const sendToApi = async (framesToSend) => {
     try {
-      setStatus('Analyzing gesture sequence...');
+      setStatus('Processing matrix metrics...');
       const cleanAPI = API.replace('http://', 'https://');
       
       const response = await axios.post(
         `${cleanAPI}/predict`, 
-        { frames: framesToSend }, // Now sending all 30 frames
-        { 
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
-        }
+        { frames: framesToSend },
       );
 
-      if (response.data.gesture) {
-        setPrediction(response.data.gesture);
-        setConfidence(response.data.confidence);
-        setSentence(prev => [...prev, response.data.gesture]);
-        setStatus('Gesture Recognized!');
+      const detected = response.data.gesture || response.data.prediction;
+
+      if (detected) {
+        setPrediction(detected);
+        const confScore = response.data.confidence;
+        setConfidence(confScore > 1 ? confScore : (confScore * 100).toFixed(1));
+        setSentence(prev => [...prev, detected]);
+        setStatus(`Recognized: ${detected}`);
+        
+        // TRIGGER VOICE OUTPUT INSTANTLY
+        speakWord(detected);
+
         if (token) fetchHistory();
       }
     } catch (err) {
-      const msg = err.response?.data?.error || 'Prediction failed';
-      setStatus(`API Error: ${msg}`);
+      console.error(err);
+      setStatus('Payload sequence timed out');
+    } finally {
+      setIsAnalyzing(false); // Release capture lock
     }
   };
+
+  // ENSURE YOUR TRIGGER INTERVAL IS RUNNING AT RAPID SPEED
+  useEffect(() => {
+    let interval = null;
+    if (isCameraActive) {
+      // 33 milliseconds = ~30 frames captured every single second!
+      interval = setInterval(() => {
+        captureAndPredict();
+      }, 33); 
+    } else {
+      setFrameBuffer([]);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isCameraActive, frameBuffer, isAnalyzing]);
   return (
     <div className="app-container">
       <Navbar theme={theme} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} isAuthenticated={!!token} onLogout={onLogout} />
