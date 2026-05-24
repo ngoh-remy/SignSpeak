@@ -84,24 +84,24 @@ const captureAndPredict = async () => {
       canvas.height = 64
       const ctx = canvas.getContext('2d')
       
-      // Draw frame cleanly from the active video track
+      // Draw the active video frame cleanly
       ctx.drawImage(videoRef.current, 0, 0, 64, 64)
       
-      // Revert strictly back to your working raw PNG syntax
-      const rawPngString = canvas.toDataURL('image/png').split(',')[1]
+      // Extract clean base64 data URL string
+      const dataUrl = canvas.toDataURL('image/png')
+      const base64Frame = dataUrl.split(',')[1]
       
-      if (!rawPngString) return
-      const frames = [rawPngString]
+      if (!base64Frame) return
 
       setStatus(t.loading || 'Analyzing matrix...')
       
       const cleanAPI = API.replace('http://', 'https://')
       
-      const response = await axios.post(
-        `${cleanAPI}/predict`, 
-        { frames }, 
-        token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-      )
+      // Fix: Send a completely clean POST request without Auth tokens 
+      // in case the ML model server rejects unexpected header payloads
+      const response = await axios.post(`${cleanAPI}/predict`, {
+        frames: [base64Frame]
+      })
       
       const detected = response.data.gesture || response.data.prediction
       
