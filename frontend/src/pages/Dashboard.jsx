@@ -4,7 +4,7 @@ import axios from 'axios'
 import translations from '../translations'
 import { 
   Camera, CpuIcon, ClipboardList, Play, Square, History, X, 
-  TrendingUp, Award, Calendar, Target, Trash2, Delete, Volume2
+  TrendingUp, Trash2, Volume2
 } from 'lucide-react'
 import Navbar from './Navbar'
 
@@ -30,9 +30,21 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   const token = localStorage.getItem('token')
   const t = translations[lang] || translations['en']
 
+  // Map incoming gesture strings dynamically to vocalize French terms if lang === 'fr'
+  const gestureTranslations = {
+    'help': 'aide',
+    'go': 'aller',
+    'drink': 'boire',
+    'hello': 'bonjour',
+    'thank you': 'merci',
+    'please': 's\'il vous plaît',
+    'yes': 'oui',
+    'no': 'non'
+  }
+
   useEffect(() => {
     setUsername(localStorage.getItem('username') || 'Guest Explorer')
-    setStatus(t.clickToBegin || 'Ready')
+    setStatus(lang === 'fr' ? 'Prêt' : 'Ready')
     if (token) fetchHistory()
   }, [lang])
 
@@ -60,9 +72,9 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
       streamRef.current = stream
       setIsStreaming(true)
-      setStatus(t.webcamActive || 'Active')
+      setStatus(t.webcamActive)
     } catch (err) {
-      setStatus(t.cameraError || 'Error')
+      setStatus(t.cameraError)
     }
   }
 
@@ -71,16 +83,21 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     streamRef.current = null
     setIsStreaming(false)
     setFrameBuffer([])
-    setStatus(t.webcamInactive || 'Inactive')
+    setStatus(t.webcamInactive)
   }
 
-  // UPDATED: Forced French voice selection
+  // FIXED SPEECH OUTPUT: Forces the browser synthesis engine to speak natively in French
   const speak = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel() 
-      const utterance = new SpeechSynthesisUtterance(text)
       
-      // Ensure the browser knows to use a French voice if lang is 'fr'
+      let textToSpeak = text
+      if (lang === 'fr') {
+        const normalized = text.toLowerCase().trim()
+        textToSpeak = gestureTranslations[normalized] || text
+      }
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak)
       utterance.lang = lang === 'fr' ? 'fr-FR' : 'en-US'
       utterance.rate = 0.9
       window.speechSynthesis.speak(utterance)
@@ -107,7 +124,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
           sendToApi(newBuffer)
           return [] 
         }
-        setStatus(`${t.recording || 'Recording'}: ${newBuffer.length}/30`)
+        setStatus(`${lang === 'fr' ? 'Enregistrement' : 'Recording'}: ${newBuffer.length}/30`)
         return newBuffer
       })
     } catch (err) {
@@ -117,9 +134,8 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
 
   const sendToApi = async (framesToSend) => {
     try {
-      setStatus(t.analyzing || 'Analyzing...')
-      const cleanAPI = API.replace('http://', 'https://')
-      const response = await axios.post(`${cleanAPI}/predict`, { frames: framesToSend }, {
+      setStatus(t.loading)
+      const response = await axios.post(`${API}/predict`, { frames: framesToSend }, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -127,12 +143,16 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       if (detected) {
         setPrediction(detected)
         setConfidence(response.data.confidence)
-        setSentence(prev => [...prev, detected])
+        
+        // Push the French equivalent word onto the visual sentence pills if in French mode
+        const displayWord = lang === 'fr' ? (gestureTranslations[detected.toLowerCase().trim()] || detected) : detected
+        setSentence(prev => [...prev, displayWord])
+        
         speak(detected)
         if (token) fetchHistory()
       }
     } catch (err) {
-      setStatus(t.error || 'Error')
+      setStatus(t.error)
     } finally {
       setIsAnalyzing(false)
     }
@@ -153,10 +173,10 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       <div className="workspace-layout">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card">
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '6px' }}>{t.dashboardTitle || 'Sign Interpreter Workspace'}</h2>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '6px' }}>{t.dashboardTitle}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              {t.welcomeMessage || 'Welcome'}, {username}. {t.dashboardSubtitle || 'Start camera tracking to build continuous translations.'}
-            </p>
+  {t.welcomeUser}{username}. {t.translationDesc}
+</p>
             
             <div style={{ width: '100%', height: '340px', background: 'var(--bg-darker)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
               {isStreaming ? (
@@ -164,21 +184,21 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               ) : (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                   <Camera size={40} style={{ marginBottom: '8px' }} />
-                  <p style={{ fontSize: '0.85rem' }}>{t.webcamInactive || 'Camera system uninitialized'}</p>
+                  <p style={{ fontSize: '0.85rem' }}>{t.webcamInactive}</p>
                 </div>
               )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '16px', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.statusLabel || 'Status'}: {status}</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.webcamStatus}: {status}</span>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {token && (
                   <button className="btn-base btn-outline" onClick={() => setShowHistory(true)}>
-                    <History size={14} /> {t.analytics || 'Analytics'}
+                    <History size={14} /> {lang === 'fr' ? 'Statistiques' : 'Analytics'}
                   </button>
                 )}
                 <button className="btn-base btn-purple" onClick={isStreaming ? stopCamera : startCamera}>
-                  {isStreaming ? <><Square size={14} /> {t.stop || 'Stop'}</> : <><Play size={14} /> {t.start || 'Start'}</>}
+                  {isStreaming ? <><Square size={14} /> {t.stopCamera}</> : <><Play size={14} /> {t.startCamera}</>}
                 </button>
               </div>
             </div>
@@ -187,7 +207,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence || 'Sentence Construction Box'}</h3>
+                <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence}</h3>
                 {sentence.length > 0 && (
                   <button className="btn-base btn-outline" onClick={() => speak(sentence.join(' '))} style={{ padding: '4px', borderRadius: '50%', color: '#8b5cf6' }}>
                     <Volume2 size={16} />
@@ -196,10 +216,10 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn-base btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => setSentence(p => p.slice(0, -1))}>
-                  <Delete size={12} /> {t.dropWord || 'Drop Word'}
+                  {lang === 'fr' ? 'Retour' : 'Back'}
                 </button>
                 <button className="btn-base btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => setSentence([])}>
-                  <Trash2 size={12} /> {t.reset || 'Reset'}
+                  <Trash2 size={12} /> {t.clearText}
                 </button>
               </div>
             </div>
@@ -207,7 +227,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               {sentence.length > 0 ? (
                 sentence.map((w, i) => <span key={i} className="word-pill">{w}</span>)
               ) : (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.awaitingGestures || 'Awaiting gestures...'}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.noGestures}</span>
               )}
             </div>
           </div>
@@ -216,35 +236,40 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '12px' }}>
-              <CpuIcon size={14} /> {t.liveMatrix || 'Live Matrix Output'}
+              <CpuIcon size={14} /> {t.liveFeed}
             </div>
             {prediction ? (
               <div>
-                <div style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '4px' }}>{prediction.toUpperCase()}</div>
-                <div style={{ color: '#34d399', fontSize: '0.85rem' }}>{t.matchAccuracy || 'Match Accuracy'}: {confidence}%</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '4px' }}>
+                  {lang === 'fr' ? (gestureTranslations[prediction.toLowerCase().trim()] || prediction).toUpperCase() : prediction.toUpperCase()}
+                </div>
+                <div style={{ color: '#34d399', fontSize: '0.85rem' }}>{t.confidence}: {confidence}%</div>
               </div>
             ) : (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>{t.awaitingCapture || 'Awaiting capture...'}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.noGestures}</span>
             )}
           </div>
 
           <div className="glass-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '16px' }}>
-              <ClipboardList size={14} /> {t.historyLog || 'History Log'}
+              <ClipboardList size={14} /> {t.historyLog}
             </div>
             {token ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {history.slice(0, 4).map((h, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--bg-darker)', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
-                    <span>{h.gesture}</span>
-                    <span style={{ color: '#8b5cf6' }}>{h.confidence}%</span>
-                  </div>
-                ))}
+                {history.slice(0, 4).map((h, i) => {
+                  const displayGesture = lang === 'fr' ? (gestureTranslations[h.gesture.toLowerCase().trim()] || h.gesture) : h.gesture
+                  return (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--bg-darker)', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                      <span>{displayGesture}</span>
+                      <span style={{ color: '#8b5cf6' }}>{h.confidence}%</span>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
-              <div style={{ padding: '16px', background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '10px', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.85rem', color: '#f87171', marginBottom: '12px' }}>{t.guestModeLog || 'Logs locked in Guest mode.'}</p>
-                <button className="btn-base btn-purple" style={{ padding: '8px 14px', fontSize: '0.8rem' }} onClick={() => navigate('/login')}>{t.signIn || 'Sign In'}</button>
+              <div style={{ padding: '16px', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.85rem', color: '#f87171', marginBottom: '12px' }}>{t.authRequiredDesc}</p>
+                <button className="btn-base btn-purple" onClick={() => navigate('/login')}>{t.login}</button>
               </div>
             )}
           </div>
@@ -258,23 +283,23 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               <X size={20} />
             </button>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <TrendingUp style={{ color: '#8b5cf6' }} /> {t.analyticsSummary || 'Analytics Summary'}
+              <TrendingUp style={{ color: '#8b5cf6' }} /> {t.historyLog}
             </h2>
             {stats ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.totalSigns || 'TOTAL SIGNS'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>TOTAL</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{stats.total_signs || history.length}</div>
                   </div>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.avgAccuracy || 'AVG ACCURACY'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.confidence.toUpperCase()}</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#34d399' }}>{stats.average_confidence || '0'}%</div>
                   </div>
                 </div>
               </div>
             ) : (
-              <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>{t.noData || 'No data cached.'}</p>
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>{t.noHistory}</p>
             )}
           </div>
         </div>

@@ -1,5 +1,7 @@
 const translations = {
   en: {
+    welcomeUser: "Welcome, ",
+translationDesc: "Start camera tracking to build continuous translations.",
     // Global Elements & Common UI Buttons
     login: "Sign In",
     logout: "Log Out",
@@ -82,6 +84,8 @@ const translations = {
     authRequiredDesc: "Please log in to access your personal translation dashboard workspace."
   },
   fr: {
+    welcomeUser: "Bienvenue, ",
+translationDesc: "Activez le suivi de la caméra pour créer des traductions.",
     // Global Elements & Common UI Buttons
     login: "Se Connecter",
     logout: "Déconnexion",
