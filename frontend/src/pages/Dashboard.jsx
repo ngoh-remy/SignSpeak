@@ -74,61 +74,70 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setIsStreaming(false)
     setStatus(t.webcamInactive || 'Camera Inactive')
   }
+// 1. Add a state to hold the frame buffer at the top of your component
+  const [frameBuffer, setFrameBuffer] = useState([]);
 
-const captureAndPredict = async () => {
-    if (!videoRef.current || videoRef.current.readyState < 2) return
-    
+  const captureAndPredict = async () => {
+    if (!videoRef.current || videoRef.current.readyState < 2) return;
+
     try {
-      const canvas = document.createElement('canvas')
-      canvas.width = 64
-      canvas.height = 64
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(videoRef.current, 0, 0, 64, 64)
-      
-      const dataUrl = canvas.toDataURL('image/png')
-      const base64Frame = dataUrl.split(',')[1]
-      
-      if (!base64Frame) return
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, 64, 64);
 
-      setStatus(t.loading || 'Analyzing...')
+      const dataUrl = canvas.toDataURL('image/png');
+      const base64Frame = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+
+      // 2. Add the new frame to our collection
+      setFrameBuffer(prev => {
+        const newBuffer = [...prev, base64Frame];
+        
+        // 3. ONLY send to API when we hit exactly 30 frames as required by app.py
+        if (newBuffer.length === 30) {
+          sendToApi(newBuffer);
+          return []; // Clear buffer for the next gesture
+        }
+        
+        setStatus(`Capturing: ${newBuffer.length}/30 frames...`);
+        return newBuffer;
+      });
+
+    } catch (err) {
+      console.error('Capture error:', err);
+    }
+  };
+
+  // 4. Create the actual API call function
+  const sendToApi = async (framesToSend) => {
+    try {
+      setStatus('Analyzing gesture sequence...');
+      const cleanAPI = API.replace('http://', 'https://');
       
-      const cleanAPI = API.replace('http://', 'https://')
-      
-      // RESTORE THE TOKEN: This fixes the 401 Unauthorized error in your console
       const response = await axios.post(
         `${cleanAPI}/predict`, 
-        { frames: [base64Frame] },
+        { frames: framesToSend }, // Now sending all 30 frames
         { 
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           } 
         }
-      )
-      
-      const detected = response.data.gesture || response.data.prediction
-      
-      if (detected) {
-        setPrediction(detected)
-        const confScore = response.data.confidence
-        setConfidence(confScore > 1 ? confScore : (confScore * 100).toFixed(1))
-        setSentence(prev => [...prev, detected])
-        setStatus(t.detectedGesture || 'Gesture Translated')
-        if (token) fetchHistory() 
+      );
+
+      if (response.data.gesture) {
+        setPrediction(response.data.gesture);
+        setConfidence(response.data.confidence);
+        setSentence(prev => [...prev, response.data.gesture]);
+        setStatus('Gesture Recognized!');
+        if (token) fetchHistory();
       }
     } catch (err) {
-      console.error('Handshake error:', err)
-      // This will now tell you if it's still 401 or something else
-      const statusErr = err.response?.status
-      const msg = err.response?.data?.message || 'Error'
-      setStatus(`System Error: ${statusErr} (${msg})`)
-      
-      // If we get a 401, it means the token expired or is missing
-      if (statusErr === 401) {
-        setStatus("Session Expired - Please Log In Again")
-      }
+      const msg = err.response?.data?.error || 'Prediction failed';
+      setStatus(`API Error: ${msg}`);
     }
-  }
+  };
   return (
     <div className="app-container">
       <Navbar theme={theme} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} isAuthenticated={!!token} onLogout={onLogout} />
