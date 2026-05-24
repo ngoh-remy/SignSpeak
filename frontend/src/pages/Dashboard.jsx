@@ -75,27 +75,23 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setStatus(t.webcamInactive || 'Camera Inactive')
   }
 
- const captureAndPredict = async () => {
+const captureAndPredict = async () => {
     if (!videoRef.current || videoRef.current.readyState < 2) return
     
     try {
       const canvas = document.createElement('canvas')
-      // Ensure strict dimensions match what your Python/Node backend AI matrix needs
       canvas.width = 64
       canvas.height = 64
       const ctx = canvas.getContext('2d')
       
-      // Draw frame cleanly from the active webcam track
+      // Draw frame cleanly from the active video track
       ctx.drawImage(videoRef.current, 0, 0, 64, 64)
       
-      // Get the image data. We try JPEG first as it's standard for vision models, fallback to PNG
-      const rawDataUrl = canvas.toDataURL('image/jpeg', 0.8) || canvas.toDataURL('image/png')
-      const base64Frame = rawDataUrl.split(',')[1]
+      // Revert strictly back to your working raw PNG syntax
+      const rawPngString = canvas.toDataURL('image/png').split(',')[1]
       
-      if (!base64Frame) return
-      
-      // Format payload exactly matching the array expectations of your production backend
-      const payload = { frames: [base64Frame] }
+      if (!rawPngString) return
+      const frames = [rawPngString]
 
       setStatus(t.loading || 'Analyzing matrix...')
       
@@ -103,32 +99,28 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       
       const response = await axios.post(
         `${cleanAPI}/predict`, 
-        payload, 
+        { frames }, 
         token ? { headers: { Authorization: `Bearer ${token}` } } : {}
       )
       
-      // Support both variations of backend keys (.gesture or .prediction)
       const detected = response.data.gesture || response.data.prediction
       
       if (detected) {
         setPrediction(detected)
-        // Fallback accuracy calculation if backend passes raw decimal ratio instead of percentage
         const confScore = response.data.confidence
         setConfidence(confScore > 1 ? confScore : (confScore * 100).toFixed(1))
         setSentence(prev => [...prev, detected])
         setStatus(t.detectedGesture || 'Frame read successful')
         if (token) fetchHistory() 
       } else {
-        setStatus('Processing request...')
+        setStatus('Awaiting gesture pattern...')
       }
     } catch (err) {
       console.error('Handshake error:', err)
-      // Display the exact system code error right on screen to pinpoint the problem instantly
       const systemErrorMsg = err.response?.data?.message || err.response?.statusText || 'Payload rejected'
       setStatus(`API Error: ${err.response?.status || ''} (${systemErrorMsg})`)
     }
   }
-
   return (
     <div className="app-container">
       <Navbar theme={theme} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} isAuthenticated={!!token} onLogout={onLogout} />
