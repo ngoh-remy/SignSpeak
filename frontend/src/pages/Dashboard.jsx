@@ -5,7 +5,7 @@ import logo from '../assets/signspeaklogo.svg'
 import translations from '../translations'
 import { 
   Camera, CpuIcon, ClipboardList, Play, Square, Sun, Moon, LogOut, 
-  History, X, TrendingUp, Award, Calendar, Target, RotateCcw, Backspace, Trash2, Volume2
+  History, X, TrendingUp, Award, Calendar, Target, RotateCcw, Delete, Trash2, Volume2
 } from 'lucide-react'
 import Navbar from './Navbar'
 
@@ -268,7 +268,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, isAuthenticated, onLo
               </div>
               <div className="sentence-action-row">
                 <button className="btn-action-small" onClick={() => setSentence(prev => prev.slice(0, -1))}>
-                  <Backspace size={14} />
+                  <Delete size={14} />
                   <span>{t.backspace || 'Backspace'}</span>
                 </button>
                 <button className="btn-action-small" onClick={() => setSentence([])}>
