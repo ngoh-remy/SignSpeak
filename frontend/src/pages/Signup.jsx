@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/signspeaklogo.svg'
 import translations from '../translations'
-import { Eye, EyeOff } from 'lucide-react'
 
 const API = 'https://motivated-achievement-production-46e4.up.railway.app'
-
-
 
 function Signup({ theme, toggleTheme, lang, toggleLang }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -37,10 +34,11 @@ function Signup({ theme, toggleTheme, lang, toggleLang }) {
     <div className="auth-page">
       <div className="auth-top">
         <button className="lang-toggle" onClick={toggleLang}>
-          {lang === 'en' ? 'FR' : ' EN'}
+          {lang === 'en' ? 'FR' : 'EN'}
         </button>
         <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'dark' ? <><Sun size={15}/> {t.light}</> : <><Moon size={15}/> {t.dark}</>}
+          {theme === 'dark' ? <Sun size={14}/> : <Moon size={14}/>}
+          <span className="nav-btn-text">{theme === 'dark' ? t.light : t.dark}</span>
         </button>
       </div>
 
@@ -60,38 +58,44 @@ function Signup({ theme, toggleTheme, lang, toggleLang }) {
         {error   && <div className="error-msg">{error}</div>}
         {success && <div className="success-msg">{success}</div>}
 
-        <input className="input-field" type="text"
-          placeholder={t.usernamePlaceholder} value={username}
-          onChange={e => setUsername(e.target.value)} />
+        <input 
+          className="input-field" 
+          type="text"
+          placeholder={t.usernamePlaceholder} 
+          value={username}
+          onChange={e => setUsername(e.target.value)} 
+        />
 
-        <input className="input-field" type="email"
-          placeholder={t.emailPlaceholder} value={email}
-          onChange={e => setEmail(e.target.value)} />
+        <input 
+          className="input-field" 
+          type="email"
+          placeholder={t.emailPlaceholder} 
+          value={email}
+          onChange={e => setEmail(e.target.value)} 
+        />
 
-        <div style={{ position: 'relative', marginBottom: '1rem' }}>
-  <input
-    className="input-field"
-    type={showPassword ? 'text' : 'password'}
-    placeholder={t.passwordPlaceholder}
-    value={password}
-    onChange={e => setPassword(e.target.value)}
-    onKeyDown={e => e.key === 'Enter' && handleLogin()}
-    style={{ marginBottom: 0 }}
-  />
-  <button
-    type="button"
-    onClick={() => setShowPassword(prev => !prev)}
-    style={{
-      position: 'absolute', right: '12px', top: '50%',
-      transform: 'translateY(-50%)',
-      background: 'none', border: 'none',
-      cursor: 'pointer', color: 'var(--text-secondary)',
-      display: 'flex', alignItems: 'center'
-    }}
-  >
-    {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
-  </button>
-</div>
+        {/* Unified structural input alignment container */}
+        <div className="relative w-full" style={{ position: 'relative' }}>
+          <input
+            className="input-field"
+            type={showPassword ? 'text' : 'password'}
+            placeholder={t.passwordPlaceholder}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSignup()} // 💡 Fixed: Changed handleLogin to handleSignup
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(prev => !prev)}
+            style={{
+              position: 'absolute', right: '14px', top: '22px',
+              transform: 'translateY(-50%)', background: 'none',
+              border: 'none', cursor: 'pointer', color: 'var(--text-secondary)'
+            }}
+          >
+            {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+          </button>
+        </div>
 
         <button className="btn-primary" onClick={handleSignup} disabled={loading}>
           {loading ? t.creatingAccount : t.signUpBtn}
