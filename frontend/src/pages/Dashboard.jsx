@@ -74,13 +74,13 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setStatus(t.webcamInactive || 'Inactive')
   }
 
-  // UPDATED VOICE LOGIC: Detects language and switches voice engine locale
+  // UPDATED: Forced French voice selection
   const speak = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel() 
       const utterance = new SpeechSynthesisUtterance(text)
       
-      // Set the voice locale based on the active language
+      // Ensure the browser knows to use a French voice if lang is 'fr'
       utterance.lang = lang === 'fr' ? 'fr-FR' : 'en-US'
       utterance.rate = 0.9
       window.speechSynthesis.speak(utterance)
@@ -107,6 +107,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
           sendToApi(newBuffer)
           return [] 
         }
+        setStatus(`${t.recording || 'Recording'}: ${newBuffer.length}/30`)
         return newBuffer
       })
     } catch (err) {
@@ -116,8 +117,9 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
 
   const sendToApi = async (framesToSend) => {
     try {
-      setStatus(t.loading || '...')
-      const response = await axios.post(`${API}/predict`, { frames: framesToSend }, {
+      setStatus(t.analyzing || 'Analyzing...')
+      const cleanAPI = API.replace('http://', 'https://')
+      const response = await axios.post(`${cleanAPI}/predict`, { frames: framesToSend }, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -151,8 +153,10 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
       <div className="workspace-layout">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card">
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '6px' }}>{t.dashboardTitle}</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>{t.welcome}, {username}.</p>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '6px' }}>{t.dashboardTitle || 'Sign Interpreter Workspace'}</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+              {t.welcomeMessage || 'Welcome'}, {username}. {t.dashboardSubtitle || 'Start camera tracking to build continuous translations.'}
+            </p>
             
             <div style={{ width: '100%', height: '340px', background: 'var(--bg-darker)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
               {isStreaming ? (
@@ -160,21 +164,21 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               ) : (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                   <Camera size={40} style={{ marginBottom: '8px' }} />
-                  <p style={{ fontSize: '0.85rem' }}>{t.webcamInactive}</p>
+                  <p style={{ fontSize: '0.85rem' }}>{t.webcamInactive || 'Camera system uninitialized'}</p>
                 </div>
               )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '16px', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.status || 'Status'}: {status}</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.statusLabel || 'Status'}: {status}</span>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {token && (
                   <button className="btn-base btn-outline" onClick={() => setShowHistory(true)}>
-                    <History size={14} /> {t.historyLog}
+                    <History size={14} /> {t.analytics || 'Analytics'}
                   </button>
                 )}
                 <button className="btn-base btn-purple" onClick={isStreaming ? stopCamera : startCamera}>
-                  {isStreaming ? <><Square size={14} /> {t.stopCamera || 'Stop'}</> : <><Play size={14} /> {t.startCamera || 'Start'}</>}
+                  {isStreaming ? <><Square size={14} /> {t.stop || 'Stop'}</> : <><Play size={14} /> {t.start || 'Start'}</>}
                 </button>
               </div>
             </div>
@@ -183,7 +187,7 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence}</h3>
+                <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence || 'Sentence Construction Box'}</h3>
                 {sentence.length > 0 && (
                   <button className="btn-base btn-outline" onClick={() => speak(sentence.join(' '))} style={{ padding: '4px', borderRadius: '50%', color: '#8b5cf6' }}>
                     <Volume2 size={16} />
@@ -192,18 +196,18 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn-base btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => setSentence(p => p.slice(0, -1))}>
-                  <Delete size={12} /> {t.dropWord || 'Drop'}
+                  <Delete size={12} /> {t.dropWord || 'Drop Word'}
                 </button>
                 <button className="btn-base btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => setSentence([])}>
-                  <Trash2 size={12} /> {t.clearText}
+                  <Trash2 size={12} /> {t.reset || 'Reset'}
                 </button>
               </div>
             </div>
-            <div className="sentence-box" onClick={() => speak(sentence.join(' '))} style={{ cursor: 'pointer' }}>
+            <div className="sentence-box" onClick={() => speak(sentence.join(' '))} style={{ cursor: sentence.length > 0 ? 'pointer' : 'default' }}>
               {sentence.length > 0 ? (
                 sentence.map((w, i) => <span key={i} className="word-pill">{w}</span>)
               ) : (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.noGestures}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.awaitingGestures || 'Awaiting gestures...'}</span>
               )}
             </div>
           </div>
@@ -212,21 +216,21 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '12px' }}>
-              <CpuIcon size={14} /> {t.liveFeed || 'Output'}
+              <CpuIcon size={14} /> {t.liveMatrix || 'Live Matrix Output'}
             </div>
             {prediction ? (
               <div>
                 <div style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '4px' }}>{prediction.toUpperCase()}</div>
-                <div style={{ color: '#34d399', fontSize: '0.85rem' }}>{t.confidence || 'Accuracy'}: {confidence}%</div>
+                <div style={{ color: '#34d399', fontSize: '0.85rem' }}>{t.matchAccuracy || 'Match Accuracy'}: {confidence}%</div>
               </div>
             ) : (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>{t.noGestures}</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>{t.awaitingCapture || 'Awaiting capture...'}</span>
             )}
           </div>
 
           <div className="glass-card" style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '16px' }}>
-              <ClipboardList size={14} /> {t.historyLog}
+              <ClipboardList size={14} /> {t.historyLog || 'History Log'}
             </div>
             {token ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -238,9 +242,9 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
                 ))}
               </div>
             ) : (
-              <div style={{ padding: '16px', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.85rem', color: '#f87171' }}>{t.loginToUnlock}</p>
-                <button className="btn-base btn-purple" style={{ marginTop: '10px' }} onClick={() => navigate('/login')}>{t.login}</button>
+              <div style={{ padding: '16px', background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.85rem', color: '#f87171', marginBottom: '12px' }}>{t.guestModeLog || 'Logs locked in Guest mode.'}</p>
+                <button className="btn-base btn-purple" style={{ padding: '8px 14px', fontSize: '0.8rem' }} onClick={() => navigate('/login')}>{t.signIn || 'Sign In'}</button>
               </div>
             )}
           </div>
@@ -254,23 +258,23 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
               <X size={20} />
             </button>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <TrendingUp style={{ color: '#8b5cf6' }} /> {t.historyLog}
+              <TrendingUp style={{ color: '#8b5cf6' }} /> {t.analyticsSummary || 'Analytics Summary'}
             </h2>
             {stats ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.totalSigns || 'TOTAL'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.totalSigns || 'TOTAL SIGNS'}</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800' }}>{stats.total_signs || history.length}</div>
                   </div>
                   <div style={{ background: 'var(--bg-darker)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.accuracy || 'ACCURACY'}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t.avgAccuracy || 'AVG ACCURACY'}</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#34d399' }}>{stats.average_confidence || '0'}%</div>
                   </div>
                 </div>
               </div>
             ) : (
-              <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>{t.noGestures}</p>
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>{t.noData || 'No data cached.'}</p>
             )}
           </div>
         </div>
