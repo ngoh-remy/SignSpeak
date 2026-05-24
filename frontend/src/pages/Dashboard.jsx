@@ -75,33 +75,45 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setStatus(t.webcamInactive || 'Camera Inactive')
   }
 
-  const captureAndPredict = async () => {
-    if (!streamRef.current) return
-    const canvas = document.createElement('canvas')
-    canvas.width = 64
-    canvas.height = 64
-    const ctx = canvas.getContext('2d')
+ const captureAndPredict = async () => {
+    if (!videoRef.current || videoRef.current.readyState < 2) return // Ensure data frame is ready
     
-    // Create an internal target block video instance if ref delay hits
-    const hiddenVideo = videoRef.current || document.createElement('video')
-    if (!videoRef.current && streamRef.current) hiddenVideo.srcObject = streamRef.current
-    
-    ctx.drawImage(hiddenVideo, 0, 0, 64, 64)
-    const frames = [canvas.toDataURL('image/png').split(',')[1]]
-
     try {
+      const canvas = document.createElement('canvas')
+      // Use the actual running dimensions of your video stream
+      canvas.width = 64
+      canvas.height = 64
+      const ctx = canvas.getContext('2d')
+      
+      // Draw frame cleanly from your live stream element
+      ctx.drawImage(videoRef.current, 0, 0, 64, 64)
+      const base64Frame = canvas.toDataURL('image/png').split(',')[1]
+      
+      if (!base64Frame) return
+      const frames = [base64Frame]
+
       setStatus(t.loading || 'Analyzing matrix...')
-      const response = await axios.post(`${API}/predict`, { frames }, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+      
+      // Fix: Direct explicit fallback to ensure HTTPS domain communication
+      const cleanAPI = API.replace('http://', 'https://')
+      
+      const response = await axios.post(
+        `${cleanAPI}/predict`, 
+        { frames }, 
+        token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+      )
+      
       const detected = response.data.gesture
       if (detected) {
         setPrediction(detected)
         setConfidence(response.data.confidence)
         setSentence(prev => [...prev, detected])
         setStatus(t.detectedGesture || 'Frame read successful')
-        if (token) fetchHistory() // Dynamically refresh sidebar logs
+        if (token) fetchHistory() 
       }
     } catch (err) {
-      console.error(err)
+      console.error('API Handshake or Model matching failed:', err)
+      setStatus('Translation payload error')
     }
   }
 
