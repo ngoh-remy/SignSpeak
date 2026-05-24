@@ -74,11 +74,23 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     setStatus(t.webcamInactive || 'Camera Inactive')
   }
 
+  // Speak a single word (called automatically on detection)
   const speakWord = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel() 
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.rate = 1.0
+      window.speechSynthesis.speak(utterance)
+    }
+  }
+
+  // NEW: Speak the entire assembled sentence
+  const speakFullSentence = () => {
+    if ('speechSynthesis' in window && sentence.length > 0) {
+      window.speechSynthesis.cancel()
+      const fullText = sentence.join(' ')
+      const utterance = new SpeechSynthesisUtterance(fullText)
+      utterance.rate = 0.9 // Slightly slower for better natural flow
       window.speechSynthesis.speak(utterance)
     }
   }
@@ -134,7 +146,6 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
     }
   }
 
-  // Rapid capture loop: 33ms interval = ~30fps
   useEffect(() => {
     let interval = null
     if (isStreaming && !isAnalyzing) {
@@ -183,7 +194,20 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
 
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence || 'Sentence Construction Box'}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h3 style={{ fontSize: '1rem' }}>{t.constructedSentence || 'Sentence Construction Box'}</h3>
+                {/* SPEAK FULL SENTENCE BUTTON */}
+                {sentence.length > 0 && (
+                  <button 
+                    className="btn-base btn-outline" 
+                    onClick={speakFullSentence} 
+                    style={{ padding: '4px', borderRadius: '50%', color: '#8b5cf6' }}
+                    title="Read aloud"
+                  >
+                    <Volume2 size={16} />
+                  </button>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button className="btn-base btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => setSentence(p => p.slice(0, -1))}>
                   <Delete size={12} /> Drop Word
@@ -193,7 +217,12 @@ function Dashboard({ theme, toggleTheme, lang, toggleLang, onLogout }) {
                 </button>
               </div>
             </div>
-            <div className="sentence-box">
+            {/* Clickable box to read full sentence */}
+            <div 
+              className="sentence-box" 
+              onClick={speakFullSentence}
+              style={{ cursor: sentence.length > 0 ? 'pointer' : 'default' }}
+            >
               {sentence.length > 0 ? (
                 sentence.map((w, i) => <span key={i} className="word-pill">{w}</span>)
               ) : (
