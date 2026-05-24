@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, Globe, Sun, Moon } from 'lucide-react'
 import translations from '../translations'
-import logoAsset from '../assets/logo.png' // Matches your design icon seamlessly
+import logoAsset from '../assets/signspeaklogo.svg' // Fixed path: going up to src, then into assets
 
 function Navbar({ theme, toggleTheme, lang, toggleLang, onLogout }) {
   const navigate = useNavigate()

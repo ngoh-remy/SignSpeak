@@ -1,9 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import Navbar from './Navbar'
+import Navbar from './Navbar' // Fixed path: It sits in the same directory (src/pages/)
 import translations from '../translations'
-import logoAsset from '../assets/logo.png' // Clean reference to your initial brand identity
+import logoAsset from '../assets/signspeaklogo.svg' // Fixed path: going up to src, then into assets
 
 function Landing({ theme, toggleTheme, lang, toggleLang }) {
   const navigate = useNavigate()
