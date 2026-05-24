@@ -11,7 +11,7 @@ import cv2
 import base64
 
 from database    import create_user, verify_user, get_user_by_id
-from database    import save_prediction, get_user_history
+from database    import save_prediction, get_user_history,get_connection
 from model_loader import predict_gesture
 from datetime import timedelta
 

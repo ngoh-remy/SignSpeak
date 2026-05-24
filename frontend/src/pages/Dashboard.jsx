@@ -302,7 +302,7 @@ const speakGesture = (word) => {
       {/* ── History Slide-out Panel ── */}
 {showHistory && (
   <div className="history-overlay" onClick={() => setShowHistory(false)}>
-    {/* 💡 Clicking the dark overlay closes the panel */}
+    {/*  Clicking the dark overlay closes the panel */}
   </div>
 )}
 
@@ -348,7 +348,7 @@ const speakGesture = (word) => {
 
   {/* Suggestions */}
   <div className="panel-section">
-    <p className="section-title">💡 {t.suggestions}</p>
+    <p className="section-title"> {t.suggestions}</p>
     {suggestions.length > 0 ? (
       suggestions.map((gesture, i) => (
         <div className="suggestion-item" key={i}>
@@ -367,7 +367,7 @@ const speakGesture = (word) => {
 
   {/* History List */}
   <div className="panel-section">
-    <p className="section-title">📋 {t.recentHistory}</p>
+    <p className="section-title"> {t.recentHistory}</p>
     {history.length > 0 ? (
       history.map((item, i) => (
         <div className="history-item" key={i}>
