@@ -1,158 +1,96 @@
-// translations.js — All text content in English and French
-// 💡 This is called an i18n (internationalization) file
-//    Every piece of text in our app lives here
-//    Switching language = switching which object we read from
-
+// frontend/src/translations.js
 const translations = {
   en: {
-    // ── Navbar ──
-    appName:        "SignSpeak",
-    welcome:        "Welcome",
-    logout:         "Logout",
-    light:          "Light",
-    dark:           "Dark",
-
-    // ── Login ──
-    welcomeBack:    "Welcome Back!",
-    signInSub:      "Sign in to your account",
-    emailPlaceholder:    "Email address",
-    passwordPlaceholder: "Password",
-    loginBtn:       "Login",
-    loggingIn:      "Signing in...",
-    noAccount:      "Don't have an account?",
-    signUpFree:     "Sign up for free",
-    fillAllFields:  "Please fill in all fields",
-    loginFailed:    "Login failed",
-
-    // ── Signup ──
-    createAccount:  "Create Account",
-    joinToday:      "Join SignSpeak today — it's free!",
-    usernamePlaceholder: "Username",
-    confirmPassword: "Confirm password",
-    signUpBtn:      "Sign Up",
-    creatingAccount: "Creating account...",
-    alreadyAccount: "Already have an account?",
-    loginLink:      "Login",
-    accountCreated: "Account created! Redirecting...",
-    registerFailed: "Registration failed",
-
-    // History Panel
-historyPanel:    "History & Insights",
-totalDetections: "Total Detections",
-mostUsed:        "Most Used",
-todayCount:      "Today",
-avgConfidence:   "Avg Confidence",
-recentHistory:   "Recent Detections",
-suggestions:     "Daily Suggestions",
-suggestionText:  "Practice signing",
-noSuggestions:   "Great job! You have used all gestures recently!",
-noHistory:       "No detections yet — start signing!",
-closePanel:      "Close",
-history:         "History",
-
-    // ── Dashboard ──
-    liveCamera:     "Live Camera Feed",
-    cameraPlaceholder: "Camera feed will appear here",
-    startCamera:    "Start Camera",
-    stopCamera:     "Stop Camera",
+    appName: "SignSpeak",
+    liveCamera: "Live Camera",
+    cameraPlaceholder: "Webcam stream is disabled.",
+    clickToBegin: "Click Start Camera to begin detection",
+    cameraActive: "Camera active...",
+    cameraError: "Error accessing webcam",
+    cameraStopped: "Camera stopped",
+    analyzing: "Analyzing frames...",
+    gestureDetected: "Gesture detected!",
+    predictionFailed: "Prediction analysis failed",
     currentDetection: "Current Detection",
-    startCameraMsg: "Start camera to begin recognition",
-    confidence:     "Confidence",
+    confidence: "Confidence",
+    startCameraMsg: "Awaiting gesture inputs...",
     recentDetections: "Recent Detections",
-    noDetections:   "No detections yet",
-    analyzing:      "Analyzing gesture...",
-    gestureDetected: "Gesture detected! Waiting for next capture...",
-    predictionFailed: "Prediction failed — retrying...",
-    cameraActive:   "Camera active — detecting gestures...",
-    cameraStopped:  "Camera stopped",
-    clickToBegin:   'Click "Start Camera" to begin',
-    cameraError:    "Camera access denied. Please allow camera permissions.",
-
-    // ── Gesture translations ──
+    noDetections: "No gestures logged yet.",
+    history: "History Log",
+    historyPanel: "Analytics Profile",
+    totalDetections: "Total Runs",
+    mostUsed: "Peak Sign",
+    todayCount: "Today",
+    avgConfidence: "Avg Conf",
+    suggestions: "Recommended Practices",
+    suggestionText: "Try practicing",
+    noSuggestions: "Profile fully balanced.",
+    recentHistory: "Full Log Stream",
+    noHistory: "Logs empty.",
+    light: "Light Mode",
+    dark: "Dark Mode",
+    logout: "Log Out",
+    // --- Add these new properties ---
+    interpreterTitle: "Real-Time Sign Interpreter",
+    interpreterSubtitle: "Enable your camera, select voice output, and start gesturing inside the camera box.",
+    sentenceBuilderTitle: "Sentence Translation Builder",
+    backspace: "Backspace",
+    clear: "Clear All",
+    sentenceEmptyState: "Awaiting sign combinations to construct full concepts...",
+    speakOutLoud: "Speak Out Loud",
     gestures: {
-      drink: "Drink",
-      go:    "Go",
-      help:  "Help",
-      yes:   "Yes",
-      no:    "No",
+      "hello": "Hello",
+      "thank you": "Thank you",
+      "yes": "Yes",
+      "no": "No"
+      // Keep your remaining custom model vocabulary mappings here
     }
   },
-
   fr: {
-    // ── Navbar ──
-    appName:        "SignSpeak",
-    welcome:        "Bienvenue",
-    logout:         "Déconnexion",
-    light:          "Clair",
-    dark:           "Sombre",
-
-    // ── Login ──
-    welcomeBack:    "Bon Retour!",
-    signInSub:      "Connectez-vous à votre compte",
-    emailPlaceholder:    "Adresse e-mail",
-    passwordPlaceholder: "Mot de passe",
-    loginBtn:       "Connexion",
-    loggingIn:      "Connexion en cours...",
-    noAccount:      "Pas encore de compte?",
-    signUpFree:     "S'inscrire gratuitement",
-    fillAllFields:  "Veuillez remplir tous les champs",
-    loginFailed:    "Échec de la connexion",
-
-    // ── Signup ──
-    createAccount:  "Créer un Compte",
-    joinToday:      "Rejoignez SignSpeak aujourd'hui — c'est gratuit!",
-    usernamePlaceholder: "Nom d'utilisateur",
-    confirmPassword: "Confirmer le mot de passe",
-    signUpBtn:      "S'inscrire",
-    creatingAccount: "Création du compte...",
-    alreadyAccount: "Vous avez déjà un compte?",
-    loginLink:      "Connexion",
-    accountCreated: "Compte créé! Redirection...",
-    registerFailed: "Échec de l'inscription",
-
-    // History Panel
-historyPanel:    "Historique & Analyses",
-totalDetections: "Total Détections",
-mostUsed:        "Plus Utilisé",
-todayCount:      "Aujourd'hui",
-avgConfidence:   "Confiance Moy.",
-recentHistory:   "Détections Récentes",
-suggestions:     "Suggestions du Jour",
-suggestionText:  "Pratiquez le signe",
-noSuggestions:   "Bravo! Vous avez utilisé tous les gestes récemment!",
-noHistory:       "Aucune détection — commencez à signer!",
-closePanel:      "Fermer",
-history:         "Historique",
-
-    // ── Dashboard ──
-    liveCamera:     "Flux Caméra en Direct",
-    cameraPlaceholder: "Le flux caméra apparaîtra ici",
-    startCamera:    "Démarrer la Caméra",
-    stopCamera:     "Arrêter la Caméra",
+    appName: "SignSpeak",
+    liveCamera: "Caméra en Direct",
+    cameraPlaceholder: "Le flux de la webcam est désactivé.",
+    clickToBegin: "Cliquez sur Démarrer la caméra pour commencer",
+    cameraActive: "Caméra active...",
+    cameraError: "Échec d'accès à la webcam",
+    cameraStopped: "Caméra arrêtée",
+    analyzing: "Analyse des images...",
+    gestureDetected: "Geste détecté !",
+    predictionFailed: "L'analyse a échoué",
     currentDetection: "Détection Actuelle",
-    startCameraMsg: "Démarrez la caméra pour commencer",
-    confidence:     "Confiance",
+    confidence: "Confiance",
+    startCameraMsg: "En attente de gestes...",
     recentDetections: "Détections Récentes",
-    noDetections:   "Aucune détection pour l'instant",
-    analyzing:      "Analyse du geste...",
-    gestureDetected: "Geste détecté! En attente de la prochaine capture...",
-    predictionFailed: "Échec de la prédiction — nouvelle tentative...",
-    cameraActive:   "Caméra active — détection des gestes...",
-    cameraStopped:  "Caméra arrêtée",
-    clickToBegin:   'Cliquez sur "Démarrer la Caméra" pour commencer',
-    cameraError:    "Accès caméra refusé. Veuillez autoriser l'accès.",
-
-    // ── Gesture translations ──
+    noDetections: "Aucun geste enregistré pour le moment.",
+    history: "Historique",
+    historyPanel: "Profil Analytique",
+    totalDetections: "Total des Exécutions",
+    mostUsed: "Signe Principal",
+    todayCount: "Aujourd'hui",
+    avgConfidence: "Confiance Moyenne",
+    suggestions: "Pratiques Recommandées",
+    suggestionText: "Essayez de pratiquer",
+    noSuggestions: "Profil parfaitement équilibré.",
+    recentHistory: "Flux Complet",
+    noHistory: "Historique vide.",
+    light: "Mode Clair",
+    dark: "Mode Sombre",
+    logout: "Déconnexion",
+    // --- Add these new properties ---
+    interpreterTitle: "Interprète de Signes en Temps Réel",
+    interpreterSubtitle: "Activez votre caméra, configurez la voix, et commencez vos gestes face à l'objectif.",
+    sentenceBuilderTitle: "Constructeur de Phrases",
+    backspace: "Retour",
+    clear: "Effacer Tout",
+    sentenceEmptyState: "En attente de combinaisons de signes pour construire des concepts...",
+    speakOutLoud: "Écouter la Phrase",
     gestures: {
-    drink: "Boire",
-    go:    "Aller",
-    help:  "Aide",
-    yes:   "Oui",
-    no:    "Non",
+      "hello": "Bonjour",
+      "thank you": "Merci",
+      "yes": "Oui",
+      "no": "Non"
     }
-}
+  }
 }
 
 export default translations
-// 💡 We export this object so any component can import it
-//    and look up the right text based on current language
